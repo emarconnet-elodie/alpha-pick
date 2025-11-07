@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Pick - Outil de sélection d'actions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #10b981;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray: #6b7280;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+        
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .tagline {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: #f8fafc;
+            padding: 2rem;
+            border-right: 1px solid #e5e7eb;
+        }
+        
+        .filter-section {
+            margin-bottom: 2rem;
+        }
+        
+        .filter-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .filter-checkbox input {
+            width: 1.125rem;
+            height: 1.125rem;
+        }
+        
+        .filter-checkbox label {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+        
+        .score-slider {
+            margin-top: 0.5rem;
+        }
+        
+        .slider-value {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
+            text-align: center;
+            margin-top: 0.25rem;
+        }
+        
+        /* Content */
+        .content {
+            padding: 2rem;
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .pillar-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: #f1f5f9;
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+        }
+        
+        .pillar-tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .pillar-tab.active {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .view-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        
+        .view-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* Stocks Grid */
+        .stocks-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .stock-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .stock-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .stock-info {
+            flex: 1;
+        }
+        
+        .stock-name {
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stock-ticker {
+            color: var(--gray);
+            font-size: 0.875rem;
+        }
+        
+        .stock-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+        
+        .stock-pillars {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .pillar {
+            text-align: center;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background: #f8fafc;
+        }
+        
+        .pillar-score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .pillar-label {
+            font-size: 0.75rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .pillar.valuation .pillar-score { color: #2563eb; }
+        .pillar.momentum .pillar-score { color: #10b981; }
+        .pillar.profitability .pillar-score { color: #f59e0b; }
+        .pillar.dividend .pillar-score { color: #ef4444; }
+        
+        .stock-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+        }
+        
+        .metric-label {
+            color: var(--gray);
+        }
+        
+        .metric-value {
+            font-weight: 600;
+        }
+        
+        .metric-value.positive {
+            color: var(--success);
+        }
+        
+        .metric-value.negative {
+            color: var(--danger);
+        }
+        
+        /* Table View */
+        .stocks-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .stocks-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray);
+            font-size: 0.875rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .stocks-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .stocks-table tr:hover {
+            background: #f8fafc;
+        }
+        
+        .rank {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 1rem;
+            }
+            
+            .stock-pillars {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .content-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .pillar-tabs {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                ALPHA PICK
+            </div>
+            <div class="tagline">Outil de sélection des meilleures actions selon 4 piliers fondamentaux</div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-grid">
+            <!-- Sidebar Filters -->
+            <div class="sidebar">
+                <div class="filter-section">
+                    <div class="filter-title">
+                        <i class="fas fa-filter"></i>
+                        FILTRES
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="filter-pea" checked>
+                            <label for="filter-pea">Uniquement PEA</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="filter-moat" checked>
+                            <label for="filter-moat">Avec MOAT</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="filter-dividend">
+                            <label for="filter-dividend">Avec Dividende</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <div class="filter-title">
+                        <i class="fas fa-sliders-h"></i>
+                        SCORE MINIMUM
+                    </div>
+                    <div class="score-slider">
+                        <input type="range" min="0" max="100" value="70" class="slider" id="scoreSlider">
+                        <div class="slider-value" id="sliderValue">70%</div>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <div class="filter-title">
+                        <i class="fas fa-industry"></i>
+                        SECTEURS
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="sector-tech" checked>
+                            <label for="sector-tech">Technologie</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="sector-health" checked>
+                            <label for="sector-health">Santé</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="sector-industry" checked>
+                            <label for="sector-industry">Industrie</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="sector-energy" checked>
+                            <label for="sector-energy">Énergie</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content">
+                <div class="content-header">
+                    <div class="pillar-tabs">
+                        <button class="pillar-tab active" data-pillar="all">TOUS</button>
+                        <button class="pillar-tab" data-pillar="valuation">VALORISATION</button>
+                        <button class="pillar-tab" data-pillar="momentum">MOMENTUM</button>
+                        <button class="pillar-tab" data-pillar="profitability">PROFITABILITÉ</button>
+                        <button class="pillar-tab" data-pillar="dividend">DIVIDENDE</button>
+                    </div>
+                    
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="grid">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button class="view-btn" data-view="table">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Stocks Grid View -->
+                <div class="stocks-grid" id="stocksGridView">
+                    <!-- Stock cards will be generated here -->
+                </div>
+                
+                <!-- Stocks Table View -->
+                <div class="stocks-table-container" id="stocksTableView" style="display: none;">
+                    <table class="stocks-table">
+                        <thead>
+                            <tr>
+                                <th>RANG</th>
+                                <th>ACTION</th>
+                                <th>SCORE</th>
+                                <th>VALORISATION</th>
+                                <th>MOMENTUM</th>
+                                <th>PROFITABILITÉ</th>
+                                <th>DIVIDENDE</th>
+                                <th>PRIX</th>
+                                <th>VAR.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stocksTableBody">
+                            <!-- Table rows will be generated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Données des actions avec scores détaillés
+        const stocksData = [
+            {
+                id: 1,
+                name: "Soitec",
+                ticker: "SOI.PA",
+                price: 145.80,
+                change: 2.4,
+                score: 88,
+                pillars: {
+                    valuation: 92,
+                    momentum: 85,
+                    profitability: 90,
+                    dividend: 78
+                },
+                sector: "tech",
+                peaEligible: true,
+                hasMoat: true,
+                hasDividend: true,
+                metrics: {
+                    per: 18.5,
+                    peg: 0.8,
+                    roe: 24.3,
+                    yield: 1.2
+                }
+            },
+            {
+                id: 2,
+                name: "Eurofins Scientific",
+                ticker: "ERF.PA",
+                price: 52.30,
+                change: -1.2,
+                score: 76,
+                pillars: {
+                    valuation: 70,
+                    momentum: 68,
+                    profitability: 82,
+                    dividend: 80
+                },
+                sector: "health",
+                peaEligible: true,
+                hasMoat: false,
+                hasDividend: true,
+                metrics: {
+                    per: 22.3,
+                    peg: 1.2,
+                    roe: 19.8,
+                    yield: 0.8
+                }
+            },
+            {
+                id: 3,
+                name: "Dassault Systèmes",
+                ticker: "DSY.PA",
+                price: 38.90,
+                change: 0.8,
+                score: 82,
+                pillars: {
+                    valuation: 78,
+                    momentum: 75,
+                    profitability: 88,
+                    dividend: 85
+                },
+                sector: "tech",
+                peaEligible: true,
+                hasMoat: true,
+                hasDividend: true,
+                metrics: {
+                    per: 32.1,
+                    peg: 1.5,
+                    roe: 25.4,
+                    yield: 1.5
+                }
+            },
+            {
+                id: 4,
+                name: "LVMH",
+                ticker: "MC.PA",
+                price: 685.20,
+                change: 1.8,
+                score: 85,
+                pillars: {
+                    valuation: 80,
+                    momentum: 90,
+                    profitability: 85,
+                    dividend: 82
+                },
+                sector: "luxury",
+                peaEligible: true,
+                hasMoat: true,
+                hasDividend: true,
+                metrics: {
+                    per: 24.8,
+                    peg: 1.1,
+                    roe: 28.9,
+                    yield: 1.8
+                }
+            },
+            {
+                id: 5,
+                name: "Air Liquide",
+                ticker: "AI.PA",
+                price: 162.40,
+                change: -0.5,
+                score: 79,
+                pillars: {
+                    valuation: 75,
+                    momentum: 72,
+                    profitability: 80,
+                    dividend: 86
+                },
+                sector: "industry",
+                peaEligible: true,
+                hasMoat: true,
+                hasDividend: true,
+                metrics: {
+                    per: 26.3,
+                    peg: 1.8,
+                    roe: 12.7,
+                    yield: 2.2
+                }
+            },
+            {
+                id: 6,
+                name: "Sanofi",
+                ticker: "SAN.PA",
+                price: 88.15,
+                change: 0.3,
+                score: 81,
+                pillars: {
+                    valuation: 85,
+                    momentum: 78,
+                    profitability: 79,
+                    dividend: 80
+                },
+                sector: "health",
+                peaEligible: true,
+                hasMoat: true,
+                hasDividend: true,
+                metrics: {
+                    per: 13.2,
+                    peg: 1.3,
+                    roe: 14.3,
+                    yield: 3.8
+                }
+            },
+            {
+                id: 7,
+                name: "Capgemini",
+                ticker: "CAP.PA",
+                price: 198.70,
+                change: 2.1,
+                score: 84,
+                pillars: {
+                    valuation: 82,
+                    momentum: 88,
+                    profitability: 81,
+                    dividend: 76
+                },
+                sector: "tech",
+                peaEligible: true,
+                hasMoat: false,
+                hasDividend: true,
+                metrics: {
+                    per: 20.5,
+                    peg: 0.9,
+                    roe: 18.5,
+                    yield: 1.1
+                }
+            },
+            {
+                id: 8,
+                name: "TotalEnergies",
+                ticker: "TTE.PA",
+                price: 62.80,
+                change: -0.8,
+                score: 77,
+                pillars: {
+                    valuation: 85,
+                    momentum: 65,
+                    profitability: 72,
+                    dividend: 84
+                },
+                sector: "energy",
+                peaEligible: true,
+                hasMoat: true,
+                hasDividend: true,
+                metrics: {
+                    per: 9.5,
+                    peg: -1.0,
+                    roe: 13.1,
+                    yield: 4.4
+                }
+            }
+        ];
+
+        // Éléments DOM
+        const stocksGridView = document.getElementById('stocksGridView');
+        const stocksTableBody = document.getElementById('stocksTableBody');
+        const stocksTableView = document.getElementById('stocksTableView');
+        const scoreSlider = document.getElementById('scoreSlider');
+        const sliderValue = document.getElementById('sliderValue');
+        const pillarTabs = document.querySelectorAll('.pillar-tab');
+        const viewButtons = document.querySelectorAll('.view-btn');
+
+        // Mettre à jour la valeur du slider
+        scoreSlider.addEventListener('input', function() {
+            sliderValue.textContent = this.value + '%';
+            renderStocks();
+        });
+
+        // Gestion des onglets de pilier
+        pillarTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                pillarTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                renderStocks();
+            });
+        });
+
+        // Gestion du changement de vue
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                viewButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                const view = this.dataset.view;
+                if (view === 'grid') {
+                    stocksGridView.style.display = 'grid';
+                    stocksTableView.style.display = 'none';
+                } else {
+                    stocksGridView.style.display = 'none';
+                    stocksTableView.style.display = 'block';
+                }
+            });
+        });
+
+        // Rendu des actions
+        function renderStocks() {
+            const minScore = parseInt(scoreSlider.value);
+            const activePillar = document.querySelector('.pillar-tab.active').dataset.pillar;
+            
+            // Filtrer et trier les actions
+            let filteredStocks = stocksData.filter(stock => {
+                // Filtre par score minimum
+                if (stock.score < minScore) return false;
+                
+                // Filtre PEA
+                const peaFilter = document.getElementById('filter-pea').checked;
+                if (peaFilter && !stock.peaEligible) return false;
+                
+                // Filtre MOAT
+                const moatFilter = document.getElementById('filter-moat').checked;
+                if (moatFilter && !stock.hasMoat) return false;
+                
+                // Filtre dividende
+                const dividendFilter = document.getElementById('filter-dividend').checked;
+                if (dividendFilter && !stock.hasDividend) return false;
+                
+                // Filtre par secteur
+                const sectorFilters = {
+                    tech: document.getElementById('sector-tech').checked,
+                    health: document.getElementById('sector-health').checked,
+                    industry: document.getElementById('sector-industry').checked,
+                    energy: document.getElementById('sector-energy').checked
+                };
+                if (!sectorFilters[stock.sector]) return false;
+                
+                return true;
+            });
+
+            // Trier par pilier actif
+            if (activePillar !== 'all') {
+                filteredStocks.sort((a, b) => b.pillars[activePillar] - a.pillars[activePillar]);
+            } else {
+                filteredStocks.sort((a, b) => b.score - a.score);
+            }
+
+            // Rendu vue grille
+            renderGridView(filteredStocks);
+            
+            // Rendu vue tableau
+            renderTableView(filteredStocks);
+        }
+
+        function renderGridView(stocks) {
+            stocksGridView.innerHTML = '';
+            
+            stocks.forEach((stock, index) => {
+                const changeClass = stock.change >= 0 ? 'positive' : 'negative';
+                const changeSign = stock.change >= 0 ? '+' : '';
+                
+                const stockCard = document.createElement('div');
+                stockCard.className = 'stock-card';
+                stockCard.innerHTML = `
+                    <div class="stock-header">
+                        <div class="stock-info">
+                            <div class="stock-name">${stock.name}</div>
+                            <div class="stock-ticker">${stock.ticker}</div>
+                        </div>
+                        <div class="stock-score">${stock.score}</div>
+                    </div>
+                    
+                    <div class="stock-pillars">
+                        <div class="pillar valuation">
+                            <div class="pillar-score">${stock.pillars.valuation}</div>
+                            <div class="pillar-label">Valorisation</div>
+                        </div>
+                        <div class="pillar momentum">
+                            <div class="pillar-score">${stock.pillars.momentum}</div>
+                            <div class="pillar-label">Momentum</div>
+                        </div>
+                        <div class="pillar profitability">
+                            <div class="pillar-score">${stock.pillars.profitability}</div>
+                            <div class="pillar-label">Profitabilité</div>
+                        </div>
+                        <div class="pillar dividend">
+                            <div class="pillar-score">${stock.pillars.dividend}</div>
+                            <div class="pillar-label">Dividende</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stock-metrics">
+                        <div class="metric">
+                            <span class="metric-label">PRIX:</span>
+                            <span class="metric-value">${stock.price.toFixed(2)}€</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">VARIATION:</span>
+                            <span class="metric-value ${changeClass}">${changeSign}${stock.change}%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">PER:</span>
+                            <span class="metric-value">${stock.metrics.per}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">RENDEMENT:</span>
+                            <span class="metric-value">${stock.metrics.yield}%</span>
+                        </div>
+                    </div>
+                `;
+                
+                stocksGridView.appendChild(stockCard);
+            });
+        }
+
+        function renderTableView(stocks) {
+            stocksTableBody.innerHTML = '';
+            
+            stocks.forEach((stock, index) => {
+                const changeClass = stock.change >= 0 ? 'positive' : 'negative';
+                const changeSign = stock.change >= 0 ? '+' : '';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="rank">#${index + 1}</td>
+                    <td>
+                        <div style="font-weight: 600;">${stock.name}</div>
+                        <div style="font-size: 0.75rem; color: #6b7280;">${stock.ticker}</div>
+                    </td>
+                    <td>
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-weight: 700; display: inline-block;">
+                            ${stock.score}
+                        </div>
+                    </td>
+                    <td>${stock.pillars.valuation}</td>
+                    <td>${stock.pillars.momentum}</td>
+                    <td>${stock.pillars.profitability}</td>
+                    <td>${stock.pillars.dividend}</td>
+                    <td>${stock.price.toFixed(2)}€</td>
+                    <td class="metric-value ${changeClass}">${changeSign}${stock.change}%</td>
+                `;
+                
+                stocksTableBody.appendChild(row);
+            });
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ajouter des écouteurs pour tous les filtres
+            const filters = document.querySelectorAll('input[type="checkbox"]');
+            filters.forEach(filter => {
+                filter.addEventListener('change', renderStocks);
+            });
+            
+            // Rendu initial
+            renderStocks();
+        });
+    </script>
+</body>
+</html>
